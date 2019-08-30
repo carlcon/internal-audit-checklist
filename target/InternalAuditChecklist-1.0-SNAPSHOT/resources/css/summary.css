@@ -1,0 +1,25 @@
+.table_position {
+	margin-top: 100px;
+}
+
+.container-fluid {
+	background-color: #A93226;
+}
+
+thead {
+	background-color: #283747;
+	color: white;
+}
+
+tfoot {
+	background-color: #AEB6BF;
+	color: black;
+}
+
+a.nav_bar {
+	color: white !important;
+}
+.row {
+	margin-left: 15px !important;
+	margin-right: 15px !important;
+}
