@@ -5,8 +5,10 @@
  */
 package jamj.internalauditchecklist.dao;
 
+import jamj.internalauditchecklist.dao.UserDao;
 import jamj.internalauditchecklist.model.Login;
 import jamj.internalauditchecklist.model.User;
+import jamj.internalauditchecklist.model.UserPrincipal;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,12 +18,15 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 /**
  *
  * @author JC
  */
-public class UserDaoImpl implements UserDao{
+public class UserDaoImpl implements UserDao, UserDetailsService{
 
     @Autowired
     DataSource datasource;
@@ -31,43 +36,31 @@ public class UserDaoImpl implements UserDao{
     
     public User validateUser(Login login) {
        
-        String sql = "SELECT * FROM users WHERE username = '" + login.getUsername() + "' and password= '" + login.getPassword() + "'";
+//        String sql = "SELECT * FROM users WHERE username = '" + login.getUsername() + "' and password= '" + login.getPassword() + "'";
+//        
+//        List<User> user = jdbcTemplate.query(sql, new LoginMapper());
         
-        List<User> user = jdbcTemplate.query(sql, new UserMapper());
-        
-        if (user.size() > 0) {
-            String sql2 = "SELECT u.user_id, " +
-                    "u.role_id, " +
-                    "u.username, " +
-                    "u.password, " +
-                    "u.position, " +
-                    "u.first_name, " +
-                    "u.middle_name, " +
-                    "u.last_name, " +
-                    "u.email, " +
-                    "u.contact_num, " +
-                    "u.date_created, " +
-                    "u.created_by, " +
-                    "u.date_modified, " +
-                    "u.modified_by, " +
-                    "u.status_id " +
-                    "FROM users u " ;
-//                        "INNER JOIN statuses s ON u.status_id = s.status_id " +
-//                        "INNER JOIN users m ON u.modified_by = m.user_id " +
-//                        "INNER JOIN users c ON c.user_id = u.created_by " +
-//                        "INNER JOIN roles r ON u.role_id = r.role_id";
-
-            user = jdbcTemplate.query(sql2, new UserMapper());
-
-//            String sql3 = "select user_id, username from users where created_by =" + user.get(0).getCreatedBy() ;
-//
-//            user = jdbcTemplate.query(sql3, new CreatedByMapper());
+            String sql2 = "SELECT u.*, s.status_name, r.role, concat(u.first_name, ' ', u.last_name) full_name FROM users u " +
+                        "INNER JOIN statuses s ON u.status_id = s.status_id " +
+                        "INNER JOIN roles r ON u.role_id = r.role_id";
+            List<User> user = jdbcTemplate.query(sql2, new UserMapper());
             
             return user.get(0);
-        }
-        else return null;
+
         
     }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+         
+        String sql = "SELECT u.*, concat('ROLE_', role) role FROM users u inner join roles r on u.role_id = r.role_id WHERE username = '" + username + "'";
+        List<User> user = jdbcTemplate.query(sql, new UserMapper());
+        if (user == null) {
+            throw new UsernameNotFoundException(username);
+        }
+        return new UserPrincipal(user.get(0));
+    }
+    
     
     class UserMapper implements RowMapper<User>{
 
@@ -88,31 +81,12 @@ public class UserDaoImpl implements UserDao{
             user.setCreatedById(rs.getInt("created_by"));
             user.setDateModified(rs.getTimestamp("date_modified"));
             user.setModifiedById(rs.getInt("modified_by"));
+            user.setRole(rs.getString("role"));
+       
 
             return user;
         }
     } //end of class
-
-//    class CreatedByMapper implements RowMapper<User>{
-//
-//        public User mapRow(ResultSet rs, int arg1) throws SQLException{
-//            User user = new User();
-//
-//            user.setCreatedById(rs.getInt("user_id"));
-//            user.setCreatedBy(rs.getString("username"));
-////            user.setStatus(rs.getString(17));
-////            user.setRole(rs.getString(18));
-////            user.setFullName(rs.getString(19));
-//            return user;
-//
-//        }
-//    } //end of class
-
-
-
-//    String sql = "INSERT INTO tblUsers(username, user_pass, first_name, last_name, user_email, user_address, user_phone )"
-//                + "VALUES(?, ?, ?, ?, ?, ?, ?)";
-//        
-//        jdbcTemplate.update(sql, new Object[]{User.ge})
     
+  
 }

@@ -12,6 +12,8 @@ and open the template in the editor.
     <context:annotation-config />
     <bean id="userService" class="jamj.internalauditchecklist.service.UserServiceImpl" />
     <bean id="userDao" class="jamj.internalauditchecklist.dao.UserDaoImpl" />
+    <bean id="checklistService" class="jamj.internalauditchecklist.service.ChecklistServiceImpl" />
+    <bean id="checklistDao" class="jamj.internalauditchecklist.dao.ChecklistDaoImpl" />
     <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
         <property name="dataSource" ref="datasource" />
     </bean>

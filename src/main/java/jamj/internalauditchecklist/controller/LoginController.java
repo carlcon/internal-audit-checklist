@@ -17,7 +17,10 @@ import org.springframework.web.servlet.ModelAndView;
 
 import jamj.internalauditchecklist.model.Login;
 import jamj.internalauditchecklist.model.User;
+import jamj.internalauditchecklist.model.UserPrincipal;
 import jamj.internalauditchecklist.service.UserService;
+import javax.servlet.http.Cookie;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  *
@@ -35,34 +38,43 @@ public class LoginController {
         mav.addObject("login", new Login());
         return mav;
     }
-
-    @RequestMapping(value = "/loginProcess", method = RequestMethod.POST)
-    public ModelAndView loginProcess(@ModelAttribute("login") Login login) {
-        ModelAndView mav = null;
-
-        User user = userService.validateUser(login);
-
-        if (user != null) {
-            mav = new ModelAndView("home");
-            mav.addObject("userId", user.getUserId());
-            mav.addObject("roleId", user.getUserId());
-            mav.addObject("username", user.getUsername());
-            mav.addObject("firstName", user.getFirstName());
-            mav.addObject("lastName", user.getLastName());
-            mav.addObject("middleName", user.getMiddleName());
-            mav.addObject("email", user.getEmail());
-        } else {
-            mav = new ModelAndView("login");
-            mav.addObject("message", "Username or Password is wrong!!");
-        }
+    
+     @RequestMapping(value = "/home", method = RequestMethod.GET)
+    public ModelAndView showHome( HttpServletRequest request, HttpServletResponse response){
+ 
+        UserPrincipal currentUser = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+  
+        ModelAndView mav = new ModelAndView("home");
+        mav.addObject("currentRoleId", currentUser.getUser().getRoleId());
+        mav.addObject("currentUserId", currentUser.getUser().getUserId());
+       
+        
         return mav;
     }
 
-    @RequestMapping(value = "/sample", method = RequestMethod.GET)
-    public String showSample(HttpServletRequest request, HttpServletResponse response) {
+//    @RequestMapping(value = "/loginProcess", method = RequestMethod.POST)
+//    public ModelAndView loginProcess(@ModelAttribute("login") Login login, HttpServletResponse response) {
+//        ModelAndView mav = null;
+//
+//        User user = userService.validateUser(login);
+//
+//        if (user != null) {
+//            mav = new ModelAndView("home");
+//            Cookie cookie1 = new Cookie("UserId", Integer.toString(user.getUserId()));
+//            Cookie cookie2 = new Cookie("RoleId", Integer.toString(user.getRoleId()));
+//            Cookie cookie3 = new Cookie("IsLogin", Integer.toString(1));
+//            response.addCookie(cookie1);
+//            response.addCookie(cookie2);
+//            response.addCookie(cookie3);
+//           
+//        } else {
+//            mav = new ModelAndView("login");
+//            mav.addObject("message", "Username or Password is wrong!!");
+//        }
+//        return mav;
+//    }
 
-        return "login";
-    }
+
 
 //   @RequestMapping(value = "/login", method = RequestMethod.GET)
 //   public ModelAndView showLogin(HttpServletRequest request, HttpServletResponse response) {
